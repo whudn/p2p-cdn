@@ -1,23 +1,25 @@
 /**
- * P2P Universal CDN v1.0.3
- * Cross-Origin Service Worker Loader
+ * P2P Universal CDN v1.0.4
+ * Pure Script SW Installer (Cross-Origin Support)
  */
 (function () {
   if (!('serviceWorker' in navigator)) return;
 
   window.addEventListener('load', async () => {
     try {
-      // 1. Fetch isi kode Service Worker dari CDN sebagai teks
-      const response = await fetch('https://cdn.jsdelivr.net/gh/whudn/p2p-cdn@main/sw.js');
-      const swCode = await response.text();
+      // 1. Fetch isi kode Service Worker utama dari CDN
+      const cdnSwUrl = 'https://cdn.jsdelivr.net/gh/whudn/p2p-cdn@main/sw.js';
+      
+      // 2. Buat wrapper script yang menggunakan importScripts ke CDN
+      const swWrapperCode = `importScripts('${cdnSwUrl}');`;
 
-      // 2. Buat Blob URL lokal (berjalan di origin/domain milik kustomer)
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
+      // 3. Buat Blob dari wrapper script tersebut
+      const blob = new Blob([swWrapperCode], { type: 'application/javascript' });
+      const blobUrl = URL.createObjectURL(blob);
 
-      // 3. Daftarkan Service Worker
-      await navigator.serviceWorker.register(swUrl);
-      console.log('⚡ [P2P-CDN] Universal Engine Active!');
+      // 4. Daftarkan Service Worker via Blob URL Wrapper
+      const reg = await navigator.serviceWorker.register(blobUrl, { scope: '/' });
+      console.log('⚡ [P2P-CDN] Universal Engine Active!', reg);
     } catch (err) {
       console.error('❌ [P2P-CDN] Registration Failed:', err);
     }
